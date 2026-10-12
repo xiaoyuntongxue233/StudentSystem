@@ -52,7 +52,7 @@ public class ActivityJPanel extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
-        String[] activityCols = { "标题", "开始时间", "结束时间", "创建者", "报名/上限" };
+        String[] activityCols = { "标题", "开始时间", "结束时间", "创建者", "报名/上限/候补" };
         activityModel = new DefaultTableModel(activityCols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -105,12 +105,13 @@ public class ActivityJPanel extends JPanel {
         for (Activity a : activityList.getAll()) {
             int current = a.getStudentList().getCurrentSize();
             int max = a.getStudentList().getMaxMemberNum();
+            int waiting = a.getStudentList().getWaitingMemberNum();
             activityModel.addRow(new Object[] {
                     a.getTitle(),
                     formatTime(a.getStartTime()),
                     formatTime(a.getEndTime()),
                     a.getCreator() == null ? "-" : a.getCreator().getName(),
-                    current + " / " + (max == 0 ? "不限" : max)
+                    current + " / " + (max == 0 ? "不限" : max) + " / " + (max == 0 ? "-" : waiting)
             });
         }
     }
@@ -209,7 +210,7 @@ public class ActivityJPanel extends JPanel {
     }
 
     int newMax = result.getStudentList().getMaxMemberNum();
-    int newWaitingMax = newMax / 3;
+    int newWaitingMax = result.getStudentList().getWaitingMemberNum();
     int newCapacity = (newMax == 0) ? Integer.MAX_VALUE : (newMax + newWaitingMax);
     int currentSize = old.getStudentList().getCurrentSize();
 
@@ -227,7 +228,7 @@ public class ActivityJPanel extends JPanel {
         sb.append("\n确定要修改吗？");
 
         int confirm = JOptionPane.showConfirmDialog(
-                this, sb.toString(), "确认修改人数上限",
+                this, sb.toString(), "确认修改人数上限与候补人数",
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirm != JOptionPane.YES_OPTION) {
             return;
@@ -239,6 +240,7 @@ public class ActivityJPanel extends JPanel {
     old.setStartTime(result.getStartTime());
     old.setEndTime(result.getEndTime());
     old.getStudentList().setMaxMemberNum(newMax);
+    old.getStudentList().setWaitingMemberNum(newWaitingMax);
 
     
     java.util.List<Student> removed = old.getStudentList().truncateToCapacity();

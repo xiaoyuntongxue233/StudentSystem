@@ -218,7 +218,7 @@ public class ActivityJPanel extends JPanel {
 
         int max = activity.getStudentList().getMaxMemberNum();
         int current = activity.getStudentList().getCurrentSize();
-        int waitingMax = max / 3;
+        int waitingMax = activity.getStudentList().getWaitingMemberNum();
 
         if (max == 0 || current < max) {
             activity.getStudentList().addStu(me);
@@ -246,7 +246,11 @@ public class ActivityJPanel extends JPanel {
             return;
         }
 
-        JOptionPane.showMessageDialog(this, "正式和候补名额均已满，无法报名。");
+        if (waitingMax == 0) {
+            JOptionPane.showMessageDialog(this, "正式名额已满，该活动没有设置候补名额，无法报名。");
+        } else {
+            JOptionPane.showMessageDialog(this, "正式和候补名额均已满，无法报名。");
+        }
     }
 
     private void doCancel() {

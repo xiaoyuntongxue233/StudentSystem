@@ -30,11 +30,17 @@ public class AdminJMenuBar extends JMenuBar {
         accountMenu.add(myInfoItem);
         add(accountMenu);
 
+        JMenu tokenMenu = new JMenu("口令");
+        JMenuItem manageTokenItem = new JMenuItem("管理员口令管理");
+        manageTokenItem.addActionListener(e -> showTokenDialog());
+        tokenMenu.add(manageTokenItem);
+        add(tokenMenu);
+
         JMenu helpMenu = new JMenu("帮助");
         JMenuItem aboutItem = new JMenuItem("关于");
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(
                 owner,
-                "小型学生管理系统 v0.1",
+                "小型学生管理系统 v0.2",
                 "关于", JOptionPane.INFORMATION_MESSAGE));
         helpMenu.add(aboutItem);
         add(helpMenu);
@@ -49,6 +55,11 @@ public class AdminJMenuBar extends JMenuBar {
                     "账户信息已更新。",
                     "提示", JOptionPane.INFORMATION_MESSAGE);
         }
+    }
+
+    private void showTokenDialog() {
+        AdminTokenDialog dialog = new AdminTokenDialog(owner);
+        dialog.setVisible(true);
     }
 
     private void doSwitchUser() {

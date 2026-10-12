@@ -24,8 +24,10 @@ public class LoginJFrame extends LoginWindow {
 
     public static UserLinkedList userList = new UserLinkedList();
     public static ActivityList activityList = new ActivityList();
+    public static AdminTokenList adminTokenList = new AdminTokenList();
     public static final String USER_FILE = "users.dat";
     public static final String ACTIVITY_FILE = "activities.dat";
+    public static final String ADMIN_TOKEN_FILE = "adminTokens.dat";
 
     static {
         ArrayList<User> savedUsers = DataStore.load(USER_FILE);
@@ -56,6 +58,18 @@ public class LoginJFrame extends LoginWindow {
             activityList = new ActivityList();
             saveActivities();
         }
+
+        ArrayList<String> savedTokens = DataStore.load(ADMIN_TOKEN_FILE);
+
+        if (savedTokens != null) {
+            adminTokenList = new AdminTokenList();
+            for (String token : savedTokens) {
+                adminTokenList.addToken(token);
+            }
+        } else {
+            adminTokenList = new AdminTokenList();
+            saveAdminTokens();
+        }
     }
 
     public static void saveUsers() {
@@ -64,6 +78,10 @@ public class LoginJFrame extends LoginWindow {
 
     public static void saveActivities() {
         DataStore.save(ACTIVITY_FILE, activityList.getAll());
+    }
+
+    public static void saveAdminTokens() {
+        DataStore.save(ADMIN_TOKEN_FILE, adminTokenList.getAll());
     }
 
     private LoginJTextField idJTextField;

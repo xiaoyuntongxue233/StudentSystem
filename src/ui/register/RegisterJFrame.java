@@ -155,12 +155,14 @@ public class RegisterJFrame extends RegisterWindow {
             return;
         }
         String configuredToken = getConfiguredAdminToken();
-        if (configuredToken == null) {
+        boolean hasManagedToken = !LoginJFrame.adminTokenList.isEmpty();
+        if (!hasManagedToken && configuredToken == null) {
             JOptionPane.showMessageDialog(this,
-                    "Admin token is not configured. Set STUDENT_SYSTEM_ADMIN_TOKEN or student.system.admin.token.");
+                    "系统还没有配置任何管理员口令，请联系已有管理员在【口令 - 管理员口令管理】中添加！");
             return;
         }
-        if (!configuredToken.equals(token)) {
+        if (!LoginJFrame.adminTokenList.contains(token)
+                && (configuredToken == null || !configuredToken.equals(token))) {
             JOptionPane.showMessageDialog(this, "Admin口令错误！");
             return;
         }

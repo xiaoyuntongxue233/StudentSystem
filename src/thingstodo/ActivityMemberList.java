@@ -9,6 +9,7 @@ public class ActivityMemberList implements Serializable {
     private static final long serialVersionUID = 8L;
 
     private int maxMemberNum = 0;
+    private int waitingMemberNum = 0;
 
     private StudentLinkedList studentList;
 
@@ -96,7 +97,11 @@ public class ActivityMemberList implements Serializable {
     }
 
     public int getWaitingMemberNum() {
-        return maxMemberNum / 3;
+        return waitingMemberNum;
+    }
+
+    public void setWaitingMemberNum(int waitingMemberNum) {
+        this.waitingMemberNum = waitingMemberNum;
     }
 
     public int getTotalCapacity() {

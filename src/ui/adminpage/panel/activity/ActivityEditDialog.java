@@ -13,6 +13,7 @@ public class ActivityEditDialog extends JDialog {
     private JTextField yearJField, monthJField, dayJField, hourJField, minuteJField;
     private JTextField year2JField, month2JField, day2JField, hour2JField, minute2JField;
     private JTextField maxField;
+    private JTextField waitingField;
 
     private Activity result;
 
@@ -62,6 +63,13 @@ public class ActivityEditDialog extends JDialog {
         maxField = new JTextField(25);
         add(maxField, gbc);
 
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        add(new JLabel("候补人数："), gbc);
+        gbc.gridx = 1;
+        waitingField = new JTextField(25);
+        add(waitingField, gbc);
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         JButton okJButton = new JButton("确定");
         JButton cancelJButton = new JButton("取消");
@@ -74,7 +82,7 @@ public class ActivityEditDialog extends JDialog {
         buttonPanel.add(cancelJButton);
 
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 6;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         add(buttonPanel, gbc);
@@ -85,8 +93,10 @@ public class ActivityEditDialog extends JDialog {
             fillTime(old.getStartTime(), true);
             fillTime(old.getEndTime(), false);
             maxField.setText(String.valueOf(old.getStudentList().getMaxMemberNum()));
+            waitingField.setText(String.valueOf(old.getStudentList().getWaitingMemberNum()));
         } else {
             maxField.setText("0");
+            waitingField.setText("0");
         }
 
         getRootPane().setDefaultButton(okJButton);
@@ -157,14 +167,16 @@ public class ActivityEditDialog extends JDialog {
 
         Time start, end;
         int max;
+        int waiting;
         try {
             start = parseTime(yearJField, monthJField, dayJField, hourJField, minuteJField);
             end = parseTime(year2JField, month2JField, day2JField, hour2JField, minute2JField);
             max = Integer.parseInt(maxField.getText().trim());
-            if (max < 0)
+            waiting = Integer.parseInt(waitingField.getText().trim());
+            if (max < 0 || waiting < 0)
                 throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "时间或人数上限格式错误！");
+            JOptionPane.showMessageDialog(this, "时间、人数上限或候补人数格式错误！");
             return;
         }
 
@@ -185,6 +197,7 @@ public class ActivityEditDialog extends JDialog {
 
         result = new Activity(title, content, start, end, null);
         result.getStudentList().setMaxMemberNum(max);
+        result.getStudentList().setWaitingMemberNum(waiting);
         dispose();
     }
 
