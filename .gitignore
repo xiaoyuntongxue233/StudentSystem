@@ -1,0 +1,30 @@
+# Java compiled output
+*.class
+target/
+out/
+bin/
+build/
+
+# IDE metadata
+.idea/
+*.iml
+*.ipr
+*.iws
+.settings/
+.project
+
+# Runtime data and logs
+data/*.dat
+*.log
+logs/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# OS metadata
+.DS_Store
+Thumbs.db
