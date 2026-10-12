@@ -48,9 +48,9 @@ public class ActivityMemberList implements Serializable {
 
     public java.util.List<Student> truncateToCapacity() {
         java.util.List<Student> removed = new java.util.ArrayList<>();
-        if (maxMemberNum == 0)
-            return removed;
         int capacity = getTotalCapacity();
+        if (capacity == Integer.MAX_VALUE)
+            return removed;
         while (studentList.getSize() > capacity) {
             Student last = getLastStudent();
             if (last == null)
@@ -73,11 +73,46 @@ public class ActivityMemberList implements Serializable {
     }
 
     public boolean isFull() {
+        if (isUnlimited()) {
+            return false;
+        }
         return studentList.getSize() >= maxMemberNum;
     }
 
     public boolean isWaitingFull() {
-        return studentList.getSize() >= maxMemberNum + getWaitingMemberNum();
+        return studentList.getSize() >= getTotalCapacity();
+    }
+
+    public boolean isUnlimited() {
+        return maxMemberNum < 0;
+    }
+
+    public boolean isForbidden() {
+        return maxMemberNum == 0;
+    }
+
+    public boolean isFormalMember(int index) {
+        if (isUnlimited()) {
+            return true;
+        }
+        return index < maxMemberNum;
+    }
+
+    public String getMaxMemberNumText() {
+        if (isUnlimited()) {
+            return "不限";
+        }
+        if (isForbidden()) {
+            return "禁止报名";
+        }
+        return String.valueOf(maxMemberNum);
+    }
+
+    public String getWaitingMemberNumText() {
+        if (maxMemberNum <= 0) {
+            return "-";
+        }
+        return String.valueOf(waitingMemberNum);
     }
 
     public int getMaxMemberNum() {
@@ -105,13 +140,20 @@ public class ActivityMemberList implements Serializable {
     }
 
     public int getTotalCapacity() {
+        if (isUnlimited()) {
+            return Integer.MAX_VALUE;
+        }
+        if (isForbidden()) {
+            return 0;
+        }
         return maxMemberNum + getWaitingMemberNum();
     }
 
     public int getOverflowCount() {
         int total = getTotalCapacity();
-        if (maxMemberNum == 0)
+        if (total == Integer.MAX_VALUE) {
             return 0;
+        }
         return Math.max(0, studentList.getSize() - total);
     }
 }

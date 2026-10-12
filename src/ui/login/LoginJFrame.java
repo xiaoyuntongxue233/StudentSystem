@@ -151,6 +151,12 @@ public class LoginJFrame extends LoginWindow {
         this.add(identifyJTextField);
         defaultEchoChar = passwordJPasswordField.getEchoChar();
 
+        LoginJLabel passwordHintJLabel = new LoginJLabel(
+                "初始密码均为123456！登录之后请及时修改密码，谨防被盗！", 200, 500, 620, 30);
+        passwordHintJLabel.setForeground(Color.decode("#FFE066"));
+        passwordHintJLabel.setFont(new java.awt.Font("等线", java.awt.Font.BOLD, 18));
+        this.add(passwordHintJLabel);
+
         passwordVisibleJButton = new LoginJButton("显示", 650, 360, 80, 30);
         loginJButton = new LoginJButton("登录", 350, 600, 100, 50);
         registerJButton = new LoginJButton("注册", 530, 600, 100, 50);

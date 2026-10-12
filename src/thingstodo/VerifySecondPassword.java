@@ -7,17 +7,21 @@ import javax.swing.JPasswordField;
 public class VerifySecondPassword {
 
     public static boolean verifySecondPassword(User self) {
+        return verifySecondPassword(self, "删除自己");
+    }
+
+    public static boolean verifySecondPassword(User self, String actionDescribe) {
         if (self == null) {
             return false;
         }
         if (self.getRole() != User.Role.Admin) {
-            JOptionPane.showMessageDialog(null,"当前账号不是管理员，无法通过二级密码删除自己。","提示", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null,"当前账号不是管理员，无法进行该操作。","提示", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
         String real = self.getSecondPassword();
         if (real == null) {
-            JOptionPane.showMessageDialog(null,"当前管理员没有设置二级密码，无法删除自己。", "提示", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null,"当前管理员没有设置二级密码，无法进行该操作。", "提示", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
@@ -25,7 +29,7 @@ public class VerifySecondPassword {
             JPasswordField pf = new JPasswordField();
             int ok = JOptionPane.showConfirmDialog(
                     null, pf,
-                    "删除自己需要输入二级密码（第 " + attempt + "/3 次）：",
+                    actionDescribe + "需要输入二级密码（第 " + attempt + "/3 次）：",
                     JOptionPane.OK_CANCEL_OPTION,
                     JOptionPane.PLAIN_MESSAGE);
 

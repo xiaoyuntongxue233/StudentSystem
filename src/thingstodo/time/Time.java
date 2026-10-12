@@ -1,5 +1,6 @@
 package thingstodo.time;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 public class Time implements Serializable{
 
@@ -86,6 +87,25 @@ public class Time implements Serializable{
         if (other == null)
             return false;
         return this.toComparable() < other.toComparable();
+    }
+
+    public boolean isAfter(Time other) {
+        if (other == null)
+            return false;
+        return this.toComparable() > other.toComparable();
+    }
+
+    public boolean isBetween(Time start, Time end) {
+        if (start == null || end == null)
+            return false;
+        long value = toComparable();
+        return value >= start.toComparable() && value <= end.toComparable();
+    }
+
+    public static Time now() {
+        LocalDateTime t = LocalDateTime.now();
+        return new Time(t.getYear(), t.getMonthValue(), t.getDayOfMonth(),
+                t.getHour(), t.getMinute());
     }
 
     public int getYear() {

@@ -10,6 +10,7 @@ import thingstodo.ActivityList;
 import thingstodo.time.Time;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ActivityJPanel extends JPanel {
@@ -18,6 +19,7 @@ public class ActivityJPanel extends JPanel {
 
     private JTable activityTable;
     private DefaultTableModel activityModel;
+    private JTextField searchField;
 
     private JTable memberTable;
     private DefaultTableModel memberModel;
@@ -37,9 +39,24 @@ public class ActivityJPanel extends JPanel {
         refreshJButton.addActionListener(e -> refreshAll());
         topPanel.add(refreshJButton);
 
+        JLabel searchJLabel = new JLabel("活动标题：");
+        searchJLabel.setForeground(Color.WHITE);
+        topPanel.add(searchJLabel);
+
+        searchField = new JTextField(15);
+        topPanel.add(searchField);
+
+        JButton searchJButton = new JButton("搜索");
+        searchJButton.addActionListener(e -> doSearch());
+        topPanel.add(searchJButton);
+
+        JButton showAllJButton = new JButton("显示全部");
+        showAllJButton.addActionListener(e -> refreshActivityTable());
+        topPanel.add(showAllJButton);
+
         add(topPanel, BorderLayout.NORTH);
 
-        String[] activityCols = { "标题", "开始时间", "结束时间", "报名/上限" };
+        String[] activityCols = { "标题", "开始时间", "结束时间", "报名/上限", "状态" };
         activityModel = new DefaultTableModel(activityCols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -112,16 +129,41 @@ public class ActivityJPanel extends JPanel {
     }
 
     private void refreshActivityTable() {
+        fillActivityTable(activityList.getAll());
+    }
+
+    private void fillActivityTable(List<Activity> list) {
         activityModel.setRowCount(0);
-        for (Activity a : activityList.getAll()) {  
+        for (Activity a : list) {
             int current = a.getStudentList().getCurrentSize();
-            int max = a.getStudentList().getMaxMemberNum();
             activityModel.addRow(new Object[] {
                     a.getTitle(),
                     formatTime(a.getStartTime()),
                     formatTime(a.getEndTime()),
-                    current + " / " + (max == 0 ? "不限" : max)
+                    current + " / " + a.getStudentList().getMaxMemberNumText(),
+                    a.getStatusText()
             });
+        }
+    }
+
+    private void doSearch() {
+        String keyword = searchField.getText().trim();
+        if (keyword.isEmpty()) {
+            refreshActivityTable();
+            return;
+        }
+
+        List<Activity> matched = new ArrayList<>();
+        for (Activity a : activityList.getAll()) {
+            if (a.getTitle() != null && a.getTitle().contains(keyword)) {
+                matched.add(a);
+            }
+        }
+
+        fillActivityTable(matched);
+
+        if (matched.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "没有匹配的活动。");
         }
     }
 
@@ -137,7 +179,7 @@ public class ActivityJPanel extends JPanel {
         for (int i = 0; i < students.size(); i++) {
             Student s = students.get(i);
             String status;
-            if (i < max || max == 0) {
+            if (activity.getStudentList().isFormalMember(i)) {
                 status = "正式";
             } else {
                 status = "候补（第" + (i - max + 1) + "位）";
@@ -169,18 +211,13 @@ public class ActivityJPanel extends JPanel {
         sb.append("标题：").append(activity.getTitle()).append("\n");
         sb.append("开始时间：").append(formatTime(activity.getStartTime())).append("\n");
         sb.append("结束时间：").append(formatTime(activity.getEndTime())).append("\n");
+        sb.append("报名开始时间：").append(formatTime(activity.getSignUpStartTime())).append("\n");
+        sb.append("报名结束时间：").append(formatTime(activity.getSignUpEndTime())).append("\n");
+        sb.append("活动状态：").append(activity.getStatusText()).append("\n");
         sb.append("创建者：").append(
                 activity.getCreator() == null ? "-" : activity.getCreator().getName()).append("\n");
-        sb.append("人数上限：").append(
-                activity.getStudentList().getMaxMemberNum() == 0
-                        ? "不限"
-                        : activity.getStudentList().getMaxMemberNum())
-                .append("\n");
-        sb.append("候补上限：").append(
-                activity.getStudentList().getMaxMemberNum() == 0
-                        ? "-"
-                        : activity.getStudentList().getWaitingMemberNum())
-                .append("\n");
+        sb.append("报名人数：").append(activity.getStudentList().getMaxMemberNumText()).append("\n");
+        sb.append("候补上限：").append(activity.getStudentList().getWaitingMemberNumText()).append("\n");
         sb.append("内容：\n").append(
                 activity.getContent() == null || activity.getContent().isEmpty()
                         ? "（无）"

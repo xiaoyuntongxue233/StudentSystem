@@ -10,16 +10,21 @@ public class ActivityEditDialog extends JDialog {
 
     private JTextField titleField;
     private JTextArea contentArea;
-    private JTextField yearJField, monthJField, dayJField, hourJField, minuteJField;
-    private JTextField year2JField, month2JField, day2JField, hour2JField, minute2JField;
+    private TimeRow startRow;
+    private TimeRow endRow;
+    private TimeRow signUpStartRow;
+    private TimeRow signUpEndRow;
     private JTextField maxField;
     private JTextField waitingField;
+
+    private final boolean createMode;
 
     private Activity result;
 
     public ActivityEditDialog(Window owner, String title, Activity old) {
         super(owner, title, ModalityType.APPLICATION_MODAL);
-        setSize(500, 500);
+        this.createMode = (old == null);
+        setSize(560, 690);
         setLocationRelativeTo(owner);
         setLayout(new GridBagLayout());
 
@@ -46,25 +51,41 @@ public class ActivityEditDialog extends JDialog {
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        add(new JLabel("开始时间："), gbc);
+        add(new JLabel("活动开始时间："), gbc);
         gbc.gridx = 1;
-        add(createTimePanel(true), gbc);
+        startRow = new TimeRow();
+        add(startRow.getPanel(), gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
-        add(new JLabel("结束时间："), gbc);
+        add(new JLabel("活动结束时间："), gbc);
         gbc.gridx = 1;
-        add(createTimePanel(false), gbc);
+        endRow = new TimeRow();
+        add(endRow.getPanel(), gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 4;
-        add(new JLabel("人数上限："), gbc);
+        add(new JLabel("报名开始时间："), gbc);
+        gbc.gridx = 1;
+        signUpStartRow = new TimeRow();
+        add(signUpStartRow.getPanel(), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        add(new JLabel("报名结束时间："), gbc);
+        gbc.gridx = 1;
+        signUpEndRow = new TimeRow();
+        add(signUpEndRow.getPanel(), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        add(new JLabel("报名人数："), gbc);
         gbc.gridx = 1;
         maxField = new JTextField(25);
         add(maxField, gbc);
 
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 7;
         add(new JLabel("候补人数："), gbc);
         gbc.gridx = 1;
         waitingField = new JTextField(25);
@@ -82,77 +103,79 @@ public class ActivityEditDialog extends JDialog {
         buttonPanel.add(cancelJButton);
 
         gbc.gridx = 0;
-        gbc.gridy = 6;
+        gbc.gridy = 8;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         add(buttonPanel, gbc);
 
+        JLabel hintJLabel = new JLabel(
+                "<html>如果你要创建不限制报名人数的活动，请将报名人数填为-1。<br>"
+                        + "如果要创建禁止任何人报名的活动，请将报名人数填为0。</html>");
+        hintJLabel.setFont(new Font("等线", Font.PLAIN, 12));
+        hintJLabel.setForeground(Color.GRAY);
+
+        gbc.gridx = 0;
+        gbc.gridy = 9;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        add(hintJLabel, gbc);
+
         if (old != null) {
             titleField.setText(old.getTitle());
             contentArea.setText(old.getContent());
-            fillTime(old.getStartTime(), true);
-            fillTime(old.getEndTime(), false);
+            startRow.fill(old.getStartTime());
+            endRow.fill(old.getEndTime());
+            signUpStartRow.fill(old.getSignUpStartTime());
+            signUpEndRow.fill(old.getSignUpEndTime());
             maxField.setText(String.valueOf(old.getStudentList().getMaxMemberNum()));
             waitingField.setText(String.valueOf(old.getStudentList().getWaitingMemberNum()));
         } else {
-            maxField.setText("0");
+            maxField.setText("-1");
             waitingField.setText("0");
         }
 
         getRootPane().setDefaultButton(okJButton);
     }
 
-    private JPanel createTimePanel(boolean isStart) {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
-        if (isStart) {
-            yearJField = new JTextField(4);
-            monthJField = new JTextField(2);
-            dayJField = new JTextField(2);
-            hourJField = new JTextField(2);
-            minuteJField = new JTextField(2);
-            p.add(yearJField);
-            p.add(new JLabel("年"));
-            p.add(monthJField);
-            p.add(new JLabel("月"));
-            p.add(dayJField);
-            p.add(new JLabel("日"));
-            p.add(hourJField);
-            p.add(new JLabel(":"));
-            p.add(minuteJField);
-        } else {
-            year2JField = new JTextField(4);
-            month2JField = new JTextField(2);
-            day2JField = new JTextField(2);
-            hour2JField = new JTextField(2);
-            minute2JField = new JTextField(2);
-            p.add(year2JField);
-            p.add(new JLabel("年"));
-            p.add(month2JField);
-            p.add(new JLabel("月"));
-            p.add(day2JField);
-            p.add(new JLabel("日"));
-            p.add(hour2JField);
-            p.add(new JLabel(":"));
-            p.add(minute2JField);
-        }
-        return p;
-    }
+    private class TimeRow {
 
-    private void fillTime(Time t, boolean isStart) {
-        if (t == null)
-            return;
-        if (isStart) {
-            yearJField.setText(String.valueOf(t.getYear()));
-            monthJField.setText(String.valueOf(t.getMonth()));
-            dayJField.setText(String.valueOf(t.getDay()));
-            hourJField.setText(String.valueOf(t.getHour()));
-            minuteJField.setText(String.valueOf(t.getMinute()));
-        } else {
-            year2JField.setText(String.valueOf(t.getYear()));
-            month2JField.setText(String.valueOf(t.getMonth()));
-            day2JField.setText(String.valueOf(t.getDay()));
-            hour2JField.setText(String.valueOf(t.getHour()));
-            minute2JField.setText(String.valueOf(t.getMinute()));
+        private final JTextField yearField = new JTextField(4);
+        private final JTextField monthField = new JTextField(2);
+        private final JTextField dayField = new JTextField(2);
+        private final JTextField hourField = new JTextField(2);
+        private final JTextField minuteField = new JTextField(2);
+
+        private JPanel getPanel() {
+            JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
+            p.add(yearField);
+            p.add(new JLabel("年"));
+            p.add(monthField);
+            p.add(new JLabel("月"));
+            p.add(dayField);
+            p.add(new JLabel("日"));
+            p.add(hourField);
+            p.add(new JLabel(":"));
+            p.add(minuteField);
+            return p;
+        }
+
+        private Time toTime() {
+            return new Time(
+                    parseIntOr(yearField.getText(), 0),
+                    parseIntOr(monthField.getText(), 0),
+                    parseIntOr(dayField.getText(), 0),
+                    parseIntOr(hourField.getText(), 0),
+                    parseIntOr(minuteField.getText(), 0));
+        }
+
+        private void fill(Time t) {
+            if (t == null)
+                return;
+            yearField.setText(String.valueOf(t.getYear()));
+            monthField.setText(String.valueOf(t.getMonth()));
+            dayField.setText(String.valueOf(t.getDay()));
+            hourField.setText(String.valueOf(t.getHour()));
+            minuteField.setText(String.valueOf(t.getMinute()));
         }
     }
 
@@ -165,28 +188,48 @@ public class ActivityEditDialog extends JDialog {
             return;
         }
 
-        Time start, end;
+        Time start, end, signUpStart, signUpEnd;
         int max;
         int waiting;
         try {
-            start = parseTime(yearJField, monthJField, dayJField, hourJField, minuteJField);
-            end = parseTime(year2JField, month2JField, day2JField, hour2JField, minute2JField);
+            start = startRow.toTime();
+            end = endRow.toTime();
+            signUpStart = signUpStartRow.toTime();
+            signUpEnd = signUpEndRow.toTime();
             max = Integer.parseInt(maxField.getText().trim());
             waiting = Integer.parseInt(waitingField.getText().trim());
-            if (max < 0 || waiting < 0)
-                throw new NumberFormatException();
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "时间、人数上限或候补人数格式错误！");
             return;
         }
 
+        if (max < -1) {
+            JOptionPane.showMessageDialog(this, "报名人数只能填 -1（不限）、0（禁止报名）或正整数！");
+            return;
+        }
+
+        if (waiting < 0) {
+            JOptionPane.showMessageDialog(this, "候补人数不能为负数！");
+            return;
+        }
+
         if (!start.isValid()) {
-            JOptionPane.showMessageDialog(this, "开始时间不合法！");
+            JOptionPane.showMessageDialog(this, "活动开始时间不合法！");
             return;
         }
 
         if (!end.isValid()) {
-            JOptionPane.showMessageDialog(this, "结束时间不合法！");
+            JOptionPane.showMessageDialog(this, "活动结束时间不合法！");
+            return;
+        }
+
+        if (!signUpStart.isValid()) {
+            JOptionPane.showMessageDialog(this, "报名开始时间不合法！");
+            return;
+        }
+
+        if (!signUpEnd.isValid()) {
+            JOptionPane.showMessageDialog(this, "报名结束时间不合法！");
             return;
         }
 
@@ -195,7 +238,19 @@ public class ActivityEditDialog extends JDialog {
             return;
         }
 
+        if (!signUpStart.isBefore(signUpEnd)) {
+            JOptionPane.showMessageDialog(this, "报名时间不正确！");
+            return;
+        }
+
+        if (createMode && Time.now().isAfter(signUpEnd)) {
+            JOptionPane.showMessageDialog(this, "报名时间不正确！");
+            return;
+        }
+
         result = new Activity(title, content, start, end, null);
+        result.setSignUpStartTime(signUpStart);
+        result.setSignUpEndTime(signUpEnd);
         result.getStudentList().setMaxMemberNum(max);
         result.getStudentList().setWaitingMemberNum(waiting);
         dispose();
@@ -208,15 +263,6 @@ public class ActivityEditDialog extends JDialog {
         if (text.isEmpty())
             return defaultValue;
         return Integer.parseInt(text);
-    }
-
-    private Time parseTime(JTextField y, JTextField mon, JTextField d, JTextField h, JTextField min) {
-        return new Time(
-                parseIntOr(y.getText(), 0),
-                parseIntOr(mon.getText(), 0),
-                parseIntOr(d.getText(), 0),
-                parseIntOr(h.getText(), 0),
-                parseIntOr(min.getText(), 0));
     }
 
     public Activity getResult() {

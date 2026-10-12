@@ -40,7 +40,7 @@ public class AdminJMenuBar extends JMenuBar {
         JMenuItem aboutItem = new JMenuItem("关于");
         aboutItem.addActionListener(e -> JOptionPane.showMessageDialog(
                 owner,
-                "小型学生管理系统 v0.2",
+                "小型学生管理系统 v0.3",
                 "关于", JOptionPane.INFORMATION_MESSAGE));
         helpMenu.add(aboutItem);
         add(helpMenu);

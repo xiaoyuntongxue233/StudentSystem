@@ -6,9 +6,15 @@ import java.io.Serializable;
 public class Activity implements Serializable {
 
     private static final long serialVersionUID = 4L;
-    
+
+    public static final int NOT_STARTED = 0;
+    public static final int RUNNING = 1;
+    public static final int FINISHED = 2;
+
     private Time startTime;
     private Time endTime;
+    private Time signUpStartTime;
+    private Time signUpEndTime;
     private String title;
     private String content;
     private Person creator;
@@ -63,6 +69,51 @@ public class Activity implements Serializable {
 
     public void setEndTime(Time endTime) {
         this.endTime = endTime;
+    }
+
+    public Time getSignUpStartTime() {
+        return signUpStartTime;
+    }
+
+    public void setSignUpStartTime(Time signUpStartTime) {
+        this.signUpStartTime = signUpStartTime;
+    }
+
+    public Time getSignUpEndTime() {
+        return signUpEndTime;
+    }
+
+    public void setSignUpEndTime(Time signUpEndTime) {
+        this.signUpEndTime = signUpEndTime;
+    }
+
+    public int getStatus() {
+        Time now = Time.now();
+        if (startTime != null && now.isBefore(startTime)) {
+            return NOT_STARTED;
+        }
+        if (endTime != null && now.isAfter(endTime)) {
+            return FINISHED;
+        }
+        return RUNNING;
+    }
+
+    public String getStatusText() {
+        int status = getStatus();
+        if (status == NOT_STARTED) {
+            return "未开始";
+        }
+        if (status == FINISHED) {
+            return "已结束";
+        }
+        return "进行中";
+    }
+
+    public boolean isSignUpOpen(Time now) {
+        if (signUpStartTime == null || signUpEndTime == null) {
+            return true;
+        }
+        return now.isBetween(signUpStartTime, signUpEndTime);
     }
 
     public String getTitle() {

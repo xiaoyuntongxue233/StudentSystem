@@ -11,6 +11,7 @@ import thingstodo.time.Time;
 import ui.login.LoginJFrame;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ActivityJPanel extends JPanel {
@@ -20,6 +21,7 @@ public class ActivityJPanel extends JPanel {
 
     private JTable activityTable;
     private DefaultTableModel activityModel;
+    private JTextField searchField;
 
     private JTable memberTable;
     private DefaultTableModel memberModel;
@@ -50,9 +52,24 @@ public class ActivityJPanel extends JPanel {
         refreshBtn.addActionListener(e -> refreshAll());
         topPanel.add(refreshBtn);
 
+        JLabel searchJLabel = new JLabel("活动标题：");
+        searchJLabel.setForeground(Color.WHITE);
+        topPanel.add(searchJLabel);
+
+        searchField = new JTextField(15);
+        topPanel.add(searchField);
+
+        JButton searchBtn = new JButton("搜索");
+        searchBtn.addActionListener(e -> doSearch());
+        topPanel.add(searchBtn);
+
+        JButton showAllBtn = new JButton("显示全部");
+        showAllBtn.addActionListener(e -> refreshActivityTable());
+        topPanel.add(showAllBtn);
+
         add(topPanel, BorderLayout.NORTH);
 
-        String[] activityCols = { "标题", "开始时间", "结束时间", "创建者", "报名/上限/候补" };
+        String[] activityCols = { "标题", "开始时间", "结束时间", "创建者", "报名/上限/候补", "状态" };
         activityModel = new DefaultTableModel(activityCols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -101,18 +118,43 @@ public class ActivityJPanel extends JPanel {
     }
 
     public void refreshActivityTable() {
+        fillActivityTable(activityList.getAll());
+    }
+
+    private void fillActivityTable(List<Activity> list) {
         activityModel.setRowCount(0);
-        for (Activity a : activityList.getAll()) {
+        for (Activity a : list) {
             int current = a.getStudentList().getCurrentSize();
-            int max = a.getStudentList().getMaxMemberNum();
-            int waiting = a.getStudentList().getWaitingMemberNum();
             activityModel.addRow(new Object[] {
                     a.getTitle(),
                     formatTime(a.getStartTime()),
                     formatTime(a.getEndTime()),
                     a.getCreator() == null ? "-" : a.getCreator().getName(),
-                    current + " / " + (max == 0 ? "不限" : max) + " / " + (max == 0 ? "-" : waiting)
+                    current + " / " + a.getStudentList().getMaxMemberNumText()
+                            + " / " + a.getStudentList().getWaitingMemberNumText(),
+                    a.getStatusText()
             });
+        }
+    }
+
+    private void doSearch() {
+        String keyword = searchField.getText().trim();
+        if (keyword.isEmpty()) {
+            refreshActivityTable();
+            return;
+        }
+
+        List<Activity> matched = new ArrayList<>();
+        for (Activity a : activityList.getAll()) {
+            if (a.getTitle() != null && a.getTitle().contains(keyword)) {
+                matched.add(a);
+            }
+        }
+
+        fillActivityTable(matched);
+
+        if (matched.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "没有匹配的活动。");
         }
     }
 
@@ -133,7 +175,7 @@ public class ActivityJPanel extends JPanel {
         for (int i = 0; i < students.size(); i++) {
             Student s = students.get(i);
             String status;
-            if (i < max || max == 0) {
+            if (activity.getStudentList().isFormalMember(i)) {
                 status = "正式";
             } else {
                 status = "候补（第" + (i - max + 1) + "位）";
@@ -172,7 +214,10 @@ public class ActivityJPanel extends JPanel {
                 result.getStartTime(),
                 result.getEndTime(),
                 creator);
+        activity.setSignUpStartTime(result.getSignUpStartTime());
+        activity.setSignUpEndTime(result.getSignUpEndTime());
         activity.getStudentList().setMaxMemberNum(result.getStudentList().getMaxMemberNum());
+        activity.getStudentList().setWaitingMemberNum(result.getStudentList().getWaitingMemberNum());
 
         activityList.add(activity);
         LoginJFrame.saveActivities();
@@ -211,7 +256,7 @@ public class ActivityJPanel extends JPanel {
 
     int newMax = result.getStudentList().getMaxMemberNum();
     int newWaitingMax = result.getStudentList().getWaitingMemberNum();
-    int newCapacity = (newMax == 0) ? Integer.MAX_VALUE : (newMax + newWaitingMax);
+    int newCapacity = result.getStudentList().getTotalCapacity();
     int currentSize = old.getStudentList().getCurrentSize();
 
     if (currentSize > newCapacity) {
@@ -239,6 +284,8 @@ public class ActivityJPanel extends JPanel {
     old.setContent(result.getContent());
     old.setStartTime(result.getStartTime());
     old.setEndTime(result.getEndTime());
+    old.setSignUpStartTime(result.getSignUpStartTime());
+    old.setSignUpEndTime(result.getSignUpEndTime());
     old.getStudentList().setMaxMemberNum(newMax);
     old.getStudentList().setWaitingMemberNum(newWaitingMax);
 
@@ -271,6 +318,12 @@ public class ActivityJPanel extends JPanel {
         Activity activity = activityList.findByTitle(title);
         if (activity == null)
             return;
+
+        if (activity.getStatus() == Activity.RUNNING) {
+            if (!VerifySecondPassword.verifySecondPassword(currentUser, "删除进行中的活动")) {
+                return;
+            }
+        }
 
         int confirm = JOptionPane.showConfirmDialog(this,
                 "确定删除活动 [" + title + "] 吗？",
