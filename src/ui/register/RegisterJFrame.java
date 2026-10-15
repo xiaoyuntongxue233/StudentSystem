@@ -1,5 +1,6 @@
 package ui.register;
 
+import job.Student;
 import job.User;
 import chain.UserLinkedList;
 import ui.login.LoginJFrame;
@@ -179,7 +180,10 @@ public class RegisterJFrame extends RegisterWindow {
             return;
         }
 
-        User admin = new User(id, pwd1, User.Role.Admin, pwd2);
+        // 注册出来的账号必须是 Student（Person 的子类），
+        // 否则成员管理、查看队员等界面按 instanceof Student 过滤时看不到这个账号
+        Student admin = new Student("未填写", 0, "未填写", 0, "其他", id,
+                "00000000000", id, pwd1, User.Role.Admin, pwd2);
         userList.addUser(admin);
         LoginJFrame.saveUsers();
 
@@ -210,8 +214,9 @@ public class RegisterJFrame extends RegisterWindow {
             return;
         }
 
-        User admin = new User(id, pwd, User.Role.Guest, null);
-        userList.addUser(admin);
+        Student guest = new Student("未填写", 0, "未填写", 0, "其他", id,
+                "00000000000", id, pwd, User.Role.Guest, null);
+        userList.addUser(guest);
         LoginJFrame.saveUsers();
 
         JOptionPane.showMessageDialog(this, "访客注册成功！请牢记你的密码！");

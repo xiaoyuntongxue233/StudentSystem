@@ -4,6 +4,7 @@ target/
 out/
 bin/
 build/
+dist/
 
 # IDE metadata
 .idea/

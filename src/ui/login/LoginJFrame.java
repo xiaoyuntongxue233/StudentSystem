@@ -35,7 +35,7 @@ public class LoginJFrame extends LoginWindow {
         if (savedUsers != null) {
             userList = new UserLinkedList();
             for (User u : savedUsers) {
-                userList.addUser(u);
+                userList.addUser(upgradeLegacyUser(u));
             }
         } else {
             userList.addUser(new Student("管理组", 0, "管理", 30, "男", "系统管理员",
@@ -82,6 +82,21 @@ public class LoginJFrame extends LoginWindow {
 
     public static void saveAdminTokens() {
         DataStore.save(ADMIN_TOKEN_FILE, adminTokenList.getAll());
+    }
+
+    /**
+     * 兼容旧数据：v0.3.1 之前注册出来的账号是纯 User 对象，
+     * 没有姓名、年龄、班级这些信息，而成员管理、查看队员、导出等界面
+     * 都是按 instanceof Student 过滤的，结果就是"能登录、但列表里看不到"。
+     * 这里在载入时把这类账号补成 Student，默认信息之后可以在「成员管理」里改。
+     */
+    private static User upgradeLegacyUser(User u) {
+        if (u instanceof Student) {
+            return u;
+        }
+        String secondPassword = (u.getRole() == User.Role.Admin) ? u.getSecondPassword() : null;
+        return new Student("未填写", 0, "未填写", 0, "其他", u.getId(),
+                "00000000000", u.getId(), u.getPassword(), u.getRole(), secondPassword);
     }
 
     private LoginJTextField idJTextField;
